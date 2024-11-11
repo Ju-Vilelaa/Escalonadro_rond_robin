@@ -5,34 +5,70 @@
 #define MAX_PROCESSOS 5
 #define QUANTUM 4
 
-typedef struct Processo {
+typedef struct Processo{
     int pid;
+    int tempo_chegada;
     int tempo_servico;
     int tempo_restante;
     char tipo_io;
     int tempo_espera_io;
 } Processo;
 
+typedef struct No_Fila{
+    Processo* p;
+    struct No_Fila *proximo;
+}No_Fila;
+
 typedef struct Fila {
-    Processo* processos[MAX_PROCESSOS];
-    int frente;
-    int tras;
+    No_Fila *frente;
+    No_Fila *tras;
 } Fila;
 
 /*função manipulação fila*/
-void inicializa_fila(Fila* f){
-    f->frente = 0;
-    f->tras = 0;
+Fila* inicializa_fila(Fila* f){
+    Fila *f = (Fila *) malloc(sizeof(Fila));
+    f->frente = NULL;
+    f->tras = NULL;
+    return f;
 }
 
 int fila_vazia(Fila* f){
-    return f->frente == f->tras;
+    if(f->frente == NULL)
+        return 1;
+    return 0;
 }
 
-void enfileirar_processos(Fila* f, Processo* p){
-    if((f->tras + 1) % MAX_PROCESSOS != f->frente){ /*Calcula a posição circular imediatamente após f->tras*/
-        f->processos[f->tras] = p;
-        f->tras = (f->tras + 1) % MAX_PROCESSOS;
+void enfileirar_processos(Fila* f, Processo* p, int time){
+    if(fila_vazia(f)){
+        f -> frente = (No_Fila*) malloc(sizeof(No_Fila));
+        f -> frente -> p = p; 
+        f -> frente -> p -> tempo_chegada = time;
+        f -> frente -> proximo = NULL;
+        f -> tras = f -> frente;
+    }
+    else{
+        f -> tras -> proximo = (No_Fila*) malloc(sizeof(No_Fila));
+        f -> tras -> proximo -> p = p;
+        f -> tras -> proximo -> p -> tempo_chegada = time;
+        f -> tras -> proximo -> proximo = NULL;
+        f -> tras = f -> tras -> proximo;
+    }
+}
+
+/*retorna o processo que está na frente da fila*/
+Processo* frente(Fila* f){
+    if(fila_vazia(f))
+        return NULL;
+    return f -> frente -> p;
+}
+
+void desinfileirar_processos(Fila* f){
+    if(fila_vazia(f))
+        return;
+    
+    if(f -> frente == f -> tras){
+        free(f -> frente);
+        f -> frente = f -> tras = NULL;
     }
 }
 
@@ -131,7 +167,7 @@ int main(){
 
     
     Fila alta_prioridade, baixa_prioridade;
-    Fila fila_io[3]; /*0 = disco, 1 = fita magnetica, 2 = impressora*/
+    Fila fila_io[3] ; /*0 = disco, 1 = fita magnetica, 2 = impressora*/
     int i, j;
     srand(time(NULL));
     
