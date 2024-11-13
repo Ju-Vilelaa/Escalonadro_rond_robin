@@ -65,21 +65,19 @@ Processo* frente(Fila* f){
 void desinfileirar_processos(Fila* f){
     if(fila_vazia(f))
         return;
-    
+    /*um único elemento na fila*/
     if(f -> frente == f -> tras){
         free(f -> frente);
         f -> frente = f -> tras = NULL;
     }
+
+    else{
+        No_Fila *f_aux = f -> frente -> proximo;
+        free(f -> frente);
+        f -> frente = f_aux;
+    }
 }
 
-Processo* desinfileirar_processos(Fila* f){
-    Processo* p;
-    if(fila_vazia(f)) return NULL;
-
-    p = f->processos[f->frente];
-    f->frente = (f->frente + 1) % MAX_PROCESSOS;
-    return p;
-}
 
 Processo* cria_processo(int pid){
     Processo* p;
@@ -110,6 +108,8 @@ Processo* cria_processo(int pid){
     return p;
 }
 
+/*CÓDIGO ANTIGO N ALTERADO*/
+
 void executa_processo(Processo* p, Fila* fila_destino){
     if(p->tempo_restante > QUANTUM){
         p->tempo_restante -= QUANTUM;
@@ -122,6 +122,7 @@ void executa_processo(Processo* p, Fila* fila_destino){
     }
 }
 
+ 
 void gerencia_escalonamento(Fila* alta_prioridade, Fila* baixa_prioridade, Fila fila_io[]){
     int i;
 
@@ -197,6 +198,6 @@ int main(){
     gerencia_escalonamento(&alta_prioridade, &baixa_prioridade, fila_io);
 
     return 0;
-}
+} 
 
 /*arrumar os printfs pra entender de fato qq esta acontecendo no algoritmo*/
